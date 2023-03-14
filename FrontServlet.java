@@ -5,8 +5,12 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import utilitaires.Utils;
+import java.util.HashMap;
+import etu1796.framework.Mapping;
 
 public class FrontServlet extends HttpServlet{
+    HashMap<String,Mapping> mappingUrls = new HashMap();
+
     protected String processRequest(String url , String projectName){
         return Utils.getPath_in_URL(url, projectName);
     }
