@@ -10,35 +10,27 @@ import etu1796.framework.Mapping;
 import java.lang.reflect.Method;
 import directory.Project;
 import annotation.Url;
+import java.util.Vector;
 
 public class FrontServlet extends HttpServlet{
     HashMap<String,Mapping> mappingUrls = new HashMap();
 
     public void init(){
-    try {
-            String directory = "../webapps/framework/WEB-INF/classes";
+        try {
             String annotation = "annotation.Url"; 
-            // String FieldAnnotation = "annotation.Colonne";
             Project proj = new Project();
-            // System.out.println(proj.test_exist(directory));
-            String[] directoryNames = proj.getDirectoryNameInPackage(directory);
-            for(String directoryName : directoryNames){
-                // System.out.println(directoryName);
-
-                String[] classNames = proj.getClassesNameInPackage(directory+"/"+directoryName);
-                for(String className : classNames){
-                    Class classe = Class.forName(directoryName+"."+className);
-                    Class annotationClass = Class.forName(annotation);
+            Vector<Class> listClasses = proj.getListClassesInPackage(new Vector<Class>(), new String()); 
+            for(Class classe : listClasses) {
+                Class annotationClass = Class.forName(annotation);
                     Method[] list_Methods =  classe.getDeclaredMethods();
                     for(Method fonction : list_Methods){
                         if(fonction.isAnnotationPresent(annotationClass)){
                             Url url = (Url) fonction.getAnnotation(Url.class);
                             System.out.println(url.url());
-                            Mapping map = new Mapping(className , fonction.getName());
+                            Mapping map = new Mapping(classe.getName() , fonction.getName());
                             this.mappingUrls.put(url.url() , map);
                         }
                     }
-                }
             }
             System.out.println(this.mappingUrls.get("/emp-all").getMethod());
             System.out.println(this.mappingUrls.get("/emp-add").getMethod());
