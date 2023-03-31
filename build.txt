@@ -1,0 +1,15 @@
+javac -d framework/build framework/src/*.java
+
+cd framework\build
+
+jar -cf fw.jar .
+ 
+copy fw.jar "..\..\testFramework\WEB-INF\lib"
+
+
+
+cd ..\..\testFramework
+
+jar -cf testFramework.war .
+
+copy testFramework.war "C:\apache-tomcat-8\webapps"
