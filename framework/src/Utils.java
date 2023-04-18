@@ -50,4 +50,24 @@ public class Utils{
             }
         }
     }
+
+    public static ModelView getModelView(HashMap<String,Mapping> mappingUrls , String url) throws Exception {
+        System.out.println("URL: "+url);
+        Mapping map = mappingUrls.get(url);
+        if(map == null){
+            throw new Exception("ressource not found");
+        } else {
+            Class classe = Class.forName(map.getClassName());
+            Object objet = classe.newInstance();
+            Method[] listMethods = classe.getDeclaredMethods();
+            try {
+                Method fonction = Utils.getMethod(listMethods, map.getMethod());
+                ModelView mv = (ModelView)(fonction.invoke(objet));
+                return mv;
+            } catch (Exception e) {
+                // TODO: handle exception
+                throw e;
+            }
+        }
+    }
 }
