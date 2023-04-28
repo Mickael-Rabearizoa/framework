@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import etu1796.framework.Mapping;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import directory.Project;
 import annotation.Url;
@@ -17,9 +19,11 @@ import modelView.ModelView;
 
 public class FrontServlet extends HttpServlet{
     private HashMap<String,Mapping> mappingUrls = new HashMap();
+    private String projectName;
 
     public void init(){
         try {
+            this.projectName = this.getInitParameter("projectName");
             String annotation = "annotation.Url"; 
             Project proj = new Project();
             Vector<Class> listClasses = proj.getListClassesInPackage(new Vector<Class>(), new String()); 
@@ -51,10 +55,23 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
-    protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url , String projectName) throws Exception {
+    protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
         try {
-            String path = Utils.getPath_in_URL(url, projectName);
-            ModelView mv = Utils.getModelView(this.mappingUrls , path);
+            String path = Utils.getPath_in_URL(url, this.projectName);
+            // instanciation de la classe
+            Mapping map = mappingUrls.get(path);
+            if(map == null){
+                throw new Exception("ressource not found");
+            }
+            Class<?> classe = Class.forName(map.getClassName()); 
+            Field[] listFields = classe.getDeclaredFields();
+            Object objet = classe.newInstance();
+            for (Field field : listFields) {
+                if(req.getParameter(field.getName()) != null ){
+                    Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
+                }
+            }
+            ModelView mv = Utils.getModelView(classe, map , objet , path);
             HashMap<String, Object> data = mv.getData();
             this.setAttributes(req, data);
             System.out.println(mv.getView());
@@ -68,9 +85,9 @@ public class FrontServlet extends HttpServlet{
     }
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
         System.out.println("processus");
-        String projectName = "testFramework";
+        // String projectName = "testFramework";
         try {
-            this.processRequest(req , res , req.getRequestURL().toString() , projectName);
+            this.processRequest(req , res , req.getRequestURL().toString());
             System.out.println("-----------------------------------------------------------");
             // System.out.println("page: "+page);
             
@@ -84,9 +101,9 @@ public class FrontServlet extends HttpServlet{
         System.out.println("do get");
     }
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
-        String projectName = "testFramework";
+        // String projectName = "testFramework";
         try {
-            this.processRequest(req , res , req.getRequestURL().toString() , projectName);
+            this.processRequest(req , res , req.getRequestURL().toString());
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();

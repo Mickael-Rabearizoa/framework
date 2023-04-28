@@ -5,6 +5,10 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
 http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
 version="2.4">
     <servlet>
+        <init-param>
+            <param-name>projectName</param-name>
+            <param-value>testFramework</param-value>
+        </init-param>
         <servlet-name>FrontServlet</servlet-name>
         <servlet-class>etu1796.framework.servlet.FrontServlet</servlet-class>
     </servlet>
