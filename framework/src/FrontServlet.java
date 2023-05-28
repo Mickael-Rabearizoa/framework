@@ -6,11 +6,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import utilitaires.Utils;
 import java.util.HashMap;
+import java.util.Map;
+
 import etu1796.framework.Mapping;
 import java.lang.reflect.Method;
 import directory.Project;
 import annotation.Url;
 import java.util.Vector;
+import modelView.ModelView;
 
 public class FrontServlet extends HttpServlet{
     private HashMap<String,Mapping> mappingUrls = new HashMap();
@@ -40,12 +43,22 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    public void setAttributes(HttpServletRequest req , HashMap<String, Object> data) throws Exception {
+        if(data != null){
+            for(Map.Entry<String , Object> entry : data.entrySet()){
+                req.setAttribute(entry.getKey() , entry.getValue());
+            }
+        }
+    }
+
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url , String projectName) throws Exception {
         try {
             String path = Utils.getPath_in_URL(url, projectName);
-            String page = Utils.getPage(this.mappingUrls , path);
-            System.out.println(page);
-            RequestDispatcher dispat = req.getRequestDispatcher(page);
+            ModelView mv = Utils.getModelView(this.mappingUrls , path);
+            HashMap<String, Object> data = mv.getData();
+            this.setAttributes(req, data);
+            System.out.println(mv.getView());
+            RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
             dispat.forward(req,res);
             // return page;
         } catch (Exception e) {
