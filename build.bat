@@ -1,16 +1,31 @@
-javac -d framework/build framework/src/*.java
+@REM compilation du framework
+    javac -d framework/build framework/src/*.java
 
-cd framework\build
 
-jar -cf fw.jar .
+@REM transformation du framework en librairie jar
+    cd framework\build
+
+    jar -cf fw.jar .
+
+
+@REM suppression du contenu du repertoire temp
+    cd ../../temp
+
+    for /D %d in (*) do rd /s /q "%d"
+
+@REM structuration du repertoire temp
+    mkdir WEB-INF
+
+    cd WEB-INF
  
 copy fw.jar "..\..\testFramework\WEB-INF\lib"
 
-
-
 cd ..\..\testFramework
 
-javac -d WEB-INF/classes src/*.java
+javac -parameters -d WEB-INF/classes src/*.java
+
+
+
 
 jar -cf testFramework.war .
 

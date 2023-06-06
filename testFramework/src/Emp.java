@@ -59,11 +59,11 @@ public class Emp{
     @Url( url = "/emp-all")
     public ModelView find_all(){
         Vector<Emp> listEmp = new Vector();
-        // listEmp.add(new Emp(1 , "Rakoto" ,  2000));
+        listEmp.add(new Emp(1 , "Rakoto" ,  2000));
         
-        // listEmp.add(new Emp(2 , "Rabe" ,  2000));
+        listEmp.add(new Emp(2 , "Rabe" ,  2000));
 
-        // listEmp.add(new Emp(3 , "Rasoa" ,  2000));
+        listEmp.add(new Emp(3 , "Rasoa" ,  2000));
         ModelView mv = new ModelView("page.jsp");
         mv.addItem("listEmp" , listEmp);
         return mv;
@@ -81,5 +81,17 @@ public class Emp{
         System.out.println(this.getNom());
         System.out.println(this.getSalaire());
         return null;
+    }
+
+    @Url( url = "/detail-emp")
+    public ModelView detailEmp(int id){
+        Emp employe = this.findById(id);
+        ModelView mv = new ModelView("details.jsp");
+        mv.addItem("employe" , employe);
+        return mv;
+    }
+
+    public Emp findById(int id){
+        return new Emp(1 , "Anarana" , 6780);
     }
 }
