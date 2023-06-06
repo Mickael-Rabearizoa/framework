@@ -8,14 +8,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-<% 
-    Object listEmp_object = request.getAttribute("listEmp");
-    Vector<Emp> listEmp = (Vector)(listEmp_object);
-    for(Emp employe : listEmp){
-        out.print(employe.getNom()+" ");
-    }
-%>
 <body>
-    <h1>Welcome to this framework</h1>
+    <h1>Liste des employe</h1>
+    <% 
+        Object listEmp_object = request.getAttribute("listEmp");
+        Vector<Emp> listEmp = (Vector)(listEmp_object);
+        for(Emp employe : listEmp){
+    %>
+            <p><a href=<% out.print("/testFramework/detail-emp?id="+employe.getId()); %> > <% out.print(employe.getNom()+" "); %></a></p>
+    <%      
+        }
+    %>
 </body>
 </html>

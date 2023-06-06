@@ -12,6 +12,8 @@ import etu1796.framework.Mapping;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
 import directory.Project;
 import annotation.Url;
 import java.util.Vector;
@@ -71,7 +73,31 @@ public class FrontServlet extends HttpServlet{
                     Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
                 }
             }
-            ModelView mv = Utils.getModelView(classe, map , objet , path);
+            
+
+            Method[] listMethods = classe.getDeclaredMethods();
+            Vector listParamName = new Vector<String>();
+            Method fonction = null;
+            Parameter[] parameters = null;
+            try {
+                fonction = Utils.getMethod(listMethods, map.getMethod());
+                System.out.println(fonction.getName());
+                parameters = fonction.getParameters();
+                for (Parameter parameter : parameters) {
+                    System.out.println(parameter.getName());
+                }
+            } catch (Exception e) {
+                // TODO: handle exception
+                throw e;
+            }
+
+            Vector listParamValues = new Vector();
+            for (Parameter param : parameters) {
+                System.out.println("paramName: "+param.getName());
+                listParamValues.add(req.getParameter(param.getName()));
+            }
+
+            ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
             HashMap<String, Object> data = mv.getData();
             this.setAttributes(req, data);
             System.out.println(mv.getView());
@@ -83,6 +109,7 @@ public class FrontServlet extends HttpServlet{
             throw e;
         }
     }
+
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
         System.out.println("processus");
         // String projectName = "testFramework";
@@ -100,6 +127,7 @@ public class FrontServlet extends HttpServlet{
         // out.print(path);
         System.out.println("do get");
     }
+    
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
         // String projectName = "testFramework";
         try {
