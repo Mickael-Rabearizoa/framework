@@ -8,7 +8,7 @@
 </head>
 <body>
     <h1>Ajouter employe</h1>
-    <form action="/testFramework/emp-save" method="post" enctype="multipart/form-data">
+    <form action="/testFramework/emp-save.do" method="post" enctype="multipart/form-data">
         id:
         <input type="number" name="id">
         nom:

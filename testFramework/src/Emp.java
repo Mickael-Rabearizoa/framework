@@ -6,6 +6,8 @@ import annotation.Url;
 import annotation.ParameterName;
 import modelView.ModelView;
 import fileUpload.FileUpload;
+import annotation.Scope;
+
 
 public class Emp{
     int id;
@@ -88,6 +90,7 @@ public class Emp{
 
     @Url( url = "/emp-save.do")
     public ModelView save(){
+        System.out.println("object: " + this);
         System.out.println(this.getId());
         System.out.println(this.getNom());
         System.out.println(this.getSalaire());
