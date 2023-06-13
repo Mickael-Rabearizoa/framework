@@ -13,6 +13,8 @@ import java.util.Vector;
 
 import etu1796.framework.Mapping;
 import modelView.ModelView;
+import fileUpload.FileUpload;
+import annotation.ParameterName;
 
 public class Utils{
 
@@ -271,6 +273,27 @@ public class Utils{
         }
     }
 
+    public static void setAttributeFileUpload(Class classe , Object objet , FileUpload fileUpload , String attributeName) throws Exception {
+        try {
+            Method fonction = Utils.getMethod(classe.getDeclaredMethods() , "set"+attributeName);
+            
+            fonction.invoke(objet , fileUpload);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
+    }
+
+    public static String getParameterName(Parameter param) throws Exception {
+        String annotation = "annotation.ParameterName";
+        Class annotationClass = Class.forName(annotation);
+        if(param.isAnnotationPresent(annotationClass)){
+            ParameterName paramName = (ParameterName) param.getAnnotation(annotationClass);
+            return paramName.parameterName();
+        } else {
+            throw new Exception("les parametres de la fonction invoque doivent etre annote par: @ParameterName");
+        }
+    }
     // public static void setAttribute(Class classe , Object objet , String attributeValue , String attributeName) throws Exception {
     //     try {
     //         Method fonction = Utils.getMethod(classe.getDeclaredMethods() , "set"+attributeName);

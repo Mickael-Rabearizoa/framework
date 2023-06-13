@@ -11,6 +11,7 @@
     Object employe_object = request.getAttribute("employe");
     Emp employe = (Emp)(employe_object);
 %>
+    <p>id: <% out.print(employe.getId()); %></p>
     <p>Nom: <% out.print(employe.getNom()); %></p>
     <p>salaire: <% out.print(employe.getSalaire()); %></p>
 <body>

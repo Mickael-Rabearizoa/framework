@@ -18,7 +18,11 @@ import directory.Project;
 import annotation.Url;
 import java.util.Vector;
 import modelView.ModelView;
+import fileUpload.FileUpload;
+import java.io.InputStream;
+import javax.servlet.annotation.MultipartConfig;
 
+@MultipartConfig
 public class FrontServlet extends HttpServlet{
     private HashMap<String,Mapping> mappingUrls = new HashMap();
     private String projectName;
@@ -57,6 +61,17 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    private String getFileName(Part part){
+        String contentDisposition = part.getHeader("content-disposition");
+        String[] elements = contentDisposition.split(";");
+        for (String element : elements) {
+            if(element.trim().startsWith("filename")){
+                return element.substring(element.indexOf("=") + 1).trim().replace("\"", "");
+            }
+        }
+        return null;
+    }
+
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
         try {
             String path = Utils.getPath_in_URL(url, this.projectName);
@@ -70,10 +85,21 @@ public class FrontServlet extends HttpServlet{
             Object objet = classe.newInstance();
             for (Field field : listFields) {
                 if(req.getParameter(field.getName()) != null ){
-                    Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
+                    if(field.getType() == FileUpload.class){
+                        if(req.getPart(field.getName()) != null ){
+                            Part partFile = req.getPart(field.getName());
+                            String fileName = getFileName(partFile);
+                            InputStream inputStream = partFile.getInputStream();
+                            byte[] bytes = new byte[(int) partFile.getSize()];
+                            inputStream.read(bytes);
+                            FileUpload fileUpload = new FileUpload(fileName , bytes);
+                            Utils.setAttributeFileUpload(classe, objet, fileUpload, field.getName());
+                        } 
+                    } else {
+                        Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
+                    }
                 }
             }
-            
 
             Method[] listMethods = classe.getDeclaredMethods();
             Vector listParamName = new Vector<String>();
@@ -83,9 +109,9 @@ public class FrontServlet extends HttpServlet{
                 fonction = Utils.getMethod(listMethods, map.getMethod());
                 System.out.println(fonction.getName());
                 parameters = fonction.getParameters();
-                for (Parameter parameter : parameters) {
-                    System.out.println(parameter.getName());
-                }
+                // for (Parameter parameter : parameters) {
+                //     System.out.println(parameter.getName());
+                // }
             } catch (Exception e) {
                 // TODO: handle exception
                 throw e;
@@ -93,8 +119,8 @@ public class FrontServlet extends HttpServlet{
 
             Vector listParamValues = new Vector();
             for (Parameter param : parameters) {
-                System.out.println("paramName: "+param.getName());
-                listParamValues.add(req.getParameter(param.getName()));
+                // System.out.println("paramName: "+param.getName());
+                listParamValues.add(req.getParameter(Utils.getParameterName(param)));
             }
 
             ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);

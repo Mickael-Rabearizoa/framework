@@ -8,13 +8,15 @@
 </head>
 <body>
     <h1>Ajouter employe</h1>
-    <form action="/testFramework/emp-save" method="get">
+    <form action="/testFramework/emp-save" method="post" enctype="multipart/form-data">
         id:
         <input type="number" name="id">
         nom:
         <input type="text" name="nom">
         salaire:
         <input type="text" name="salaire">
+        photo:
+        <input type="file" name="photo">
         <input type="submit" value="Ajouter">
     </form>
 </body>
