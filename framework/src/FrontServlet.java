@@ -5,6 +5,8 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import utilitaires.Utils;
+
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -147,6 +149,28 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    public void setobjectSession(Object objet , Field sessionField , HttpServletRequest req) throws Exception {
+        try {
+            HttpSession session = req.getSession();
+
+            HashMap<String,Object> listSession = new HashMap();
+    
+            Enumeration<String> attributeNames = session.getAttributeNames();
+            while (attributeNames.hasMoreElements()) {
+                String attributeName = attributeNames.nextElement();
+                Object attributeValue = session.getAttribute(attributeName);
+                System.out.println("cle: "+attributeName+" valeur: "+attributeValue);
+                listSession.put(attributeName, attributeValue);
+            }
+            sessionField.setAccessible(true);
+            sessionField.set(objet , listSession);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
+       
+    }
+
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
         try {
             String path = Utils.getPath_in_URL(url, this.projectName);
@@ -157,7 +181,9 @@ public class FrontServlet extends HttpServlet{
                 throw new Exception("ressource not found");
             }
             Class<?> classe = Class.forName(map.getClassName());
+            
             Object objet = new Object();
+            
 
             // verification si la classe est un singleton
             if(this.checkSingletonClass(classe.getName()) == true){
@@ -173,6 +199,18 @@ public class FrontServlet extends HttpServlet{
             } else {
                 objet = classe.newInstance();
             }
+
+            // passage des session dans l'objet
+
+            Field attribut = classe.getDeclaredField("session");
+            // for(Field atr : attribut){
+            //     System.out.println(atr.getName());
+            // }
+            if(attribut.getType().equals(HashMap.class)){
+                System.out.println("niditraaaaaaaaaaaaaaaaaaaaaaaaaa");
+                setobjectSession(objet , attribut , req);
+            }
+
             Field[] listFields = classe.getDeclaredFields();
             for (Field field : listFields) {
                 if(req.getParameter(field.getName()) != null ){
@@ -214,6 +252,7 @@ public class FrontServlet extends HttpServlet{
                 listParamValues.add(req.getParameter(Utils.getParameterName(param)));
             }
 
+            // verifier raha manana autorisation ilay utilisateur
             if(checkAnnatationAuth(fonction) == true){
                 if(authentifier(fonction , req) == false){
                     throw new Exception("vous n'avez pas les droits recquis");
