@@ -7,6 +7,7 @@ import annotation.ParameterName;
 import modelView.ModelView;
 import fileUpload.FileUpload;
 import annotation.Scope;
+import annotation.Auth;
 
 
 public class Emp{
@@ -110,6 +111,22 @@ public class Emp{
 
     public Emp findById(int id){
         return new Emp(id , "Anarana" , 6780);
+    }
+
+    @Url( url = "/login.do")
+    public ModelView login(){
+        ModelView mv = new ModelView("accueil.jsp");
+        mv.addSession("user", "Jean");
+        mv.addSession("profil", "admin");
+        mv.addSession("isConnected", true);
+        return mv;
+    }
+
+    @Url( url = "/authentifier.do")
+    @Auth(profil = "admin")
+    public ModelView checkAuthentification(){
+        ModelView mv = new ModelView("authentified.jsp");
+        return mv;
     }
 
     // public ModelView login(String nom , String mdp){
