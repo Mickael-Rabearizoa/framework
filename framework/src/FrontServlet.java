@@ -16,6 +16,7 @@ import java.lang.reflect.Parameter;
 
 import directory.Project;
 import annotation.Url;
+import annotation.Auth;
 import annotation.Scope;
 import java.util.Vector;
 import modelView.ModelView;
@@ -29,8 +30,23 @@ public class FrontServlet extends HttpServlet{
     private String projectName;
     private HashMap<String,Object> list_singleton = new HashMap();
 
-    public void init(){
+    public boolean checkAnnatationAuth(Method fonction) throws Exception {
         try {
+            String methodAnnotation = "annotation.Auth";
+            Class AuthAnnotation = Class.forName(methodAnnotation);
+            if(fonction.isAnnotationPresent(AuthAnnotation)){
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
+        
+    }
+
+    public void init(){
+        try { 
             this.projectName = this.getInitParameter("projectName");
             String methodAnnotation = "annotation.Url"; 
             String classAnnotation = "annotation.Scope";
@@ -90,6 +106,45 @@ public class FrontServlet extends HttpServlet{
             return true;
         }
         return false;
+    }
+
+    ///////////////////////////////////////////////////////////// 
+    // Fonction qui ajoute la session dans HttpSession
+    public void addSession(ModelView mv, HttpServletRequest req){
+        HttpSession session = req.getSession();
+        HashMap<String, Object> mv_session = mv.getSession();
+        if(mv_session != null){
+            for(Map.Entry<String , Object> entry : mv_session.entrySet()){
+                session.setAttribute(entry.getKey() , entry.getValue());
+            }
+        }
+    }
+
+    
+    public boolean authentifier(Method fonction , HttpServletRequest req) throws Exception {
+        try {
+            String isConnectedName = this.getInitParameter("isConnected");
+            String profilName = this.getInitParameter("profil");
+
+            HttpSession session = req.getSession();
+
+            String isConnectedValue = String.valueOf(session.getAttribute(isConnectedName));
+            String profilValue = String.valueOf(session.getAttribute(profilName));
+
+            String methodAnnotation = "annotation.Auth";
+            Class AuthAnnotation = Class.forName(methodAnnotation);
+            Auth authentification = (Auth) fonction.getAnnotation(AuthAnnotation);
+
+            if(isConnectedValue != null && profilValue != null){
+                if(profilValue.compareToIgnoreCase(authentification.profil()) == 0){
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
     }
 
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
@@ -159,9 +214,19 @@ public class FrontServlet extends HttpServlet{
                 listParamValues.add(req.getParameter(Utils.getParameterName(param)));
             }
 
+            if(checkAnnatationAuth(fonction) == true){
+                if(authentifier(fonction , req) == false){
+                    throw new Exception("vous n'avez pas les droits recquis");
+                }
+            }
+
             ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
             HashMap<String, Object> data = mv.getData();
+
+            // raha misy session
+            this.addSession(mv, req);
             
+            // raha misy data
             this.setAttributes(req, data);
             System.out.println(mv.getView());
             RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());

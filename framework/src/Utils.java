@@ -294,6 +294,7 @@ public class Utils{
             throw new Exception("les parametres de la fonction invoque doivent etre annote par: @ParameterName");
         }
     }
+
     // public static void setAttribute(Class classe , Object objet , String attributeValue , String attributeName) throws Exception {
     //     try {
     //         Method fonction = Utils.getMethod(classe.getDeclaredMethods() , "set"+attributeName);

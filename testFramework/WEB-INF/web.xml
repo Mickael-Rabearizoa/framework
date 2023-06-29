@@ -5,9 +5,20 @@ xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
 http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
 version="2.4">
     <servlet>
+        <!-- nom du projet -->
         <init-param>
             <param-name>projectName</param-name>
             <param-value>testFramework</param-value>
+        </init-param>
+        <!-- utilisateur connecté -->
+        <init-param>
+            <param-name>isConnected</param-name>
+            <param-value>isConnected</param-value>
+        </init-param>
+        <!-- profil de l'utilisateur -->
+        <init-param>
+            <param-name>profil</param-name>
+            <param-value>profil</param-value>
         </init-param>
         <servlet-name>FrontServlet</servlet-name>
         <servlet-class>etu1796.framework.servlet.FrontServlet</servlet-class>
