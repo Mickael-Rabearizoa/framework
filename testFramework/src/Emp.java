@@ -1,5 +1,6 @@
 package model;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 import annotation.Url;
@@ -15,6 +16,7 @@ public class Emp{
     String nom;
     double salaire;
     FileUpload photo;
+    HashMap<String , Object> session;
 
     public Emp(){
         
@@ -64,6 +66,14 @@ public class Emp{
 
     public void setPhoto(FileUpload photo) {
         this.photo = photo;
+    }
+
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
     }
 
     // public void setSalaire(String salaire){
@@ -128,6 +138,15 @@ public class Emp{
         ModelView mv = new ModelView("authentified.jsp");
         return mv;
     }
+
+    @Url( url = "/test-session.do")
+    public ModelView testSession(){
+        HashMap<String,Object>  session = this.getSession();
+        String sessionValue =  String.valueOf(session.get("user"));
+        ModelView mv = new ModelView("testSession.jsp");
+        mv.addItem("user", sessionValue);
+        return mv;
+    } 
 
     // public ModelView login(String nom , String mdp){
     //     ModelView mv.addsession("isConnected" , true);
