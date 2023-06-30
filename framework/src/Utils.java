@@ -295,6 +295,18 @@ public class Utils{
         }
     }
 
+    public static Object getObject(Method fonction , Object objet , Vector listParamValues , Parameter[] parameters) throws Exception {
+        Object[] args = Utils.castParams(listParamValues, parameters);
+        try {
+            // fonction = Utils.getMethod(listMethods, map.getMethod());
+            Object obj = fonction.invoke(objet , args);
+            return obj;
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
+    }
+
     // public static void setAttribute(Class classe , Object objet , String attributeValue , String attributeName) throws Exception {
     //     try {
     //         Method fonction = Utils.getMethod(classe.getDeclaredMethods() , "set"+attributeName);

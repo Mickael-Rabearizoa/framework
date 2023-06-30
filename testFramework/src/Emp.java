@@ -10,6 +10,7 @@ import fileUpload.FileUpload;
 import annotation.Scope;
 import annotation.Auth;
 import annotation.Session;
+import annotation.RestAPI;
 
 public class Emp{
     int id;
@@ -149,18 +150,17 @@ public class Emp{
         return mv;
     }   
 
+    @RestAPI()
     @Url( url = "/emp-all-json.do")
-    public ModelView find_all_json(){
+    public Vector<Emp> find_all_json(){
         Vector<Emp> listEmp = new Vector();
         listEmp.add(new Emp(1 , "Rakoto" ,  2000));
         
         listEmp.add(new Emp(2 , "Rabe" ,  2000));
 
         listEmp.add(new Emp(3 , "Rasoa" ,  2000));
-        ModelView mv = new ModelView("page.jsp");
-        mv.addItem("listEmp" , listEmp);
-        mv.setIsJson(true);
-        return mv;
+        
+        return listEmp;
         // System.out.println("findAll");
     }
 
