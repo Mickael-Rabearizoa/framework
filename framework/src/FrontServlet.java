@@ -19,6 +19,7 @@ import java.lang.reflect.Parameter;
 import directory.Project;
 import annotation.Url;
 import annotation.Auth;
+import annotation.RestAPI;
 import annotation.Scope;
 import annotation.Session;
 import java.util.Vector;
@@ -34,9 +35,8 @@ public class FrontServlet extends HttpServlet{
     private String projectName;
     private HashMap<String,Object> list_singleton = new HashMap();
 
-    public boolean checkAnnatationAuth(Method fonction) throws Exception {
+    public boolean checkMethodAnnatation(Method fonction , String methodAnnotation) throws Exception {
         try {
-            String methodAnnotation = "annotation.Auth";
             Class AuthAnnotation = Class.forName(methodAnnotation);
             if(fonction.isAnnotationPresent(AuthAnnotation)){
                 return true;
@@ -48,19 +48,33 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
-    public boolean checkAnnotationSession(Method fonction) throws Exception {
-        try {
-            String methodAnnotation = "annotation.Session";
-            Class AuthAnnotation = Class.forName(methodAnnotation);
-            if(fonction.isAnnotationPresent(AuthAnnotation)){
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            // TODO: handle exception
-            throw e;
-        }
-    }
+    // public boolean checkAnnatationAuth(Method fonction) throws Exception {
+    //     try {
+    //         String methodAnnotation = "annotation.Auth";
+    //         Class AuthAnnotation = Class.forName(methodAnnotation);
+    //         if(fonction.isAnnotationPresent(AuthAnnotation)){
+    //             return true;
+    //         }
+    //         return false;
+    //     } catch (Exception e) {
+    //         // TODO: handle exception
+    //         throw e;
+    //     }
+    // }
+
+    // public boolean checkAnnotationSession(Method fonction) throws Exception {
+    //     try {
+    //         String methodAnnotation = "annotation.Session";
+    //         Class AuthAnnotation = Class.forName(methodAnnotation);
+    //         if(fonction.isAnnotationPresent(AuthAnnotation)){
+    //             return true;
+    //         }
+    //         return false;
+    //     } catch (Exception e) {
+    //         // TODO: handle exception
+    //         throw e;
+    //     }
+    // }
 
     public void init(){
         try { 
@@ -269,14 +283,14 @@ public class FrontServlet extends HttpServlet{
             }
 
             // verifier raha manana autorisation ilay utilisateur
-            if(checkAnnatationAuth(fonction) == true){
+            if(checkMethodAnnatation(fonction , "annotation.Auth") == true){
                 if(authentifier(fonction , req) == false){
                     throw new Exception("vous n'avez pas les droits recquis");
                 }
             }
 
-            // verifier raha annote session ilay fonction
-            if(checkAnnotationSession(fonction) == true){
+            // verifier raha annoté session ilay fonction
+            if(checkMethodAnnatation(fonction , "annotation.Session") == true){
                 // passage des session dans l'objet
                 Field attribut = classe.getDeclaredField("session");
                 if(attribut.getType().equals(HashMap.class)){
@@ -285,25 +299,35 @@ public class FrontServlet extends HttpServlet{
                 }
             }
 
-            ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
-            HashMap<String, Object> data = mv.getData();
-            
-            // raha misy session
-            this.addSession(mv, req);
-
-            // verifier s'il faut transformer data en Json
-            if(mv.getIsJson() == true){
+            // verification si la fonction est annoté RestAPI
+            if(checkMethodAnnatation(fonction , "annotation.RestAPI")){
+                Object obj = Utils.getObject(fonction, objet , listParamValues , parameters);
 
                 Gson gson = new Gson();
-                String json = gson.toJson(data);
+                String json = gson.toJson(obj);
                 printJson(json , res);
 
             } else {
-                // raha misy data
-                this.setAttributes(req, data);
-                System.out.println(mv.getView());
-                RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
-                dispat.forward(req,res);
+                ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
+                HashMap<String, Object> data = mv.getData();
+                
+                // raha misy session
+                this.addSession(mv, req);
+    
+                // verifier s'il faut transformer data en Json
+                if(mv.getIsJson() == true){
+    
+                    Gson gson = new Gson();
+                    String json = gson.toJson(data);
+                    printJson(json , res);
+    
+                } else {
+                    // raha misy data
+                    this.setAttributes(req, data);
+                    System.out.println(mv.getView());
+                    RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
+                    dispat.forward(req,res);
+                }
             }
             // return page;
         } catch (Exception e) {
