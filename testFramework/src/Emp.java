@@ -9,7 +9,7 @@ import modelView.ModelView;
 import fileUpload.FileUpload;
 import annotation.Scope;
 import annotation.Auth;
-
+import annotation.Session;
 
 public class Emp{
     int id;
@@ -139,6 +139,7 @@ public class Emp{
         return mv;
     }
 
+    @Session()
     @Url( url = "/test-session.do")
     public ModelView testSession(){
         HashMap<String,Object>  session = this.getSession();
@@ -146,7 +147,22 @@ public class Emp{
         ModelView mv = new ModelView("testSession.jsp");
         mv.addItem("user", sessionValue);
         return mv;
-    } 
+    }   
+
+    @Url( url = "/emp-all-json.do")
+    public ModelView find_all_json(){
+        Vector<Emp> listEmp = new Vector();
+        listEmp.add(new Emp(1 , "Rakoto" ,  2000));
+        
+        listEmp.add(new Emp(2 , "Rabe" ,  2000));
+
+        listEmp.add(new Emp(3 , "Rasoa" ,  2000));
+        ModelView mv = new ModelView("page.jsp");
+        mv.addItem("listEmp" , listEmp);
+        mv.setIsJson(true);
+        return mv;
+        // System.out.println("findAll");
+    }
 
     // public ModelView login(String nom , String mdp){
     //     ModelView mv.addsession("isConnected" , true);

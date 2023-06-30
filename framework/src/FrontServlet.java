@@ -20,11 +20,13 @@ import directory.Project;
 import annotation.Url;
 import annotation.Auth;
 import annotation.Scope;
+import annotation.Session;
 import java.util.Vector;
 import modelView.ModelView;
 import fileUpload.FileUpload;
 import java.io.InputStream;
 import javax.servlet.annotation.MultipartConfig;
+import com.google.gson.Gson;
 
 @MultipartConfig
 public class FrontServlet extends HttpServlet{
@@ -44,7 +46,20 @@ public class FrontServlet extends HttpServlet{
             // TODO: handle exception
             throw e;
         }
-        
+    }
+
+    public boolean checkAnnotationSession(Method fonction) throws Exception {
+        try {
+            String methodAnnotation = "annotation.Session";
+            Class AuthAnnotation = Class.forName(methodAnnotation);
+            if(fonction.isAnnotationPresent(AuthAnnotation)){
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
     }
 
     public void init(){
@@ -168,7 +183,17 @@ public class FrontServlet extends HttpServlet{
             // TODO: handle exception
             throw e;
         }
-       
+    }
+
+    public void printJson(String json , HttpServletResponse res) throws Exception {
+        try {
+            res.setContentType("application/json");
+            PrintWriter out = res.getWriter();
+            out.print(json);
+        } catch (Exception e) {
+            // TODO: handle exception
+            throw e;
+        }
     }
 
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
@@ -200,16 +225,7 @@ public class FrontServlet extends HttpServlet{
                 objet = classe.newInstance();
             }
 
-            // passage des session dans l'objet
-
-            Field attribut = classe.getDeclaredField("session");
-            // for(Field atr : attribut){
-            //     System.out.println(atr.getName());
-            // }
-            if(attribut.getType().equals(HashMap.class)){
-                System.out.println("niditraaaaaaaaaaaaaaaaaaaaaaaaaa");
-                setobjectSession(objet , attribut , req);
-            }
+            
 
             Field[] listFields = classe.getDeclaredFields();
             for (Field field : listFields) {
@@ -259,17 +275,36 @@ public class FrontServlet extends HttpServlet{
                 }
             }
 
+            // verifier raha annote session ilay fonction
+            if(checkAnnotationSession(fonction) == true){
+                // passage des session dans l'objet
+                Field attribut = classe.getDeclaredField("session");
+                if(attribut.getType().equals(HashMap.class)){
+                    System.out.println("niditraaaaaaaaaaaaaaaaaaaaaaaaaa");
+                    setobjectSession(objet , attribut , req);
+                }
+            }
+
             ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
             HashMap<String, Object> data = mv.getData();
-
+            
             // raha misy session
             this.addSession(mv, req);
-            
-            // raha misy data
-            this.setAttributes(req, data);
-            System.out.println(mv.getView());
-            RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
-            dispat.forward(req,res);
+
+            // verifier s'il faut transformer data en Json
+            if(mv.getIsJson() == true){
+
+                Gson gson = new Gson();
+                String json = gson.toJson(data);
+                printJson(json , res);
+
+            } else {
+                // raha misy data
+                this.setAttributes(req, data);
+                System.out.println(mv.getView());
+                RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
+                dispat.forward(req,res);
+            }
             // return page;
         } catch (Exception e) {
             // TODO: handle exception
