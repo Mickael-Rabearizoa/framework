@@ -27,6 +27,7 @@ import modelView.ModelView;
 import fileUpload.FileUpload;
 import java.io.InputStream;
 import javax.servlet.annotation.MultipartConfig;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import com.google.gson.Gson;
 
 @MultipartConfig
@@ -35,6 +36,7 @@ public class FrontServlet extends HttpServlet{
     private String projectName;
     private HashMap<String,Object> list_singleton = new HashMap();
 
+    // fonction verifier annotation d'une fonction
     public boolean checkMethodAnnatation(Method fonction , String methodAnnotation) throws Exception {
         try {
             Class AuthAnnotation = Class.forName(methodAnnotation);
@@ -48,46 +50,24 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
-    // public boolean checkAnnatationAuth(Method fonction) throws Exception {
-    //     try {
-    //         String methodAnnotation = "annotation.Auth";
-    //         Class AuthAnnotation = Class.forName(methodAnnotation);
-    //         if(fonction.isAnnotationPresent(AuthAnnotation)){
-    //             return true;
-    //         }
-    //         return false;
-    //     } catch (Exception e) {
-    //         // TODO: handle exception
-    //         throw e;
-    //     }
-    // }
-
-    // public boolean checkAnnotationSession(Method fonction) throws Exception {
-    //     try {
-    //         String methodAnnotation = "annotation.Session";
-    //         Class AuthAnnotation = Class.forName(methodAnnotation);
-    //         if(fonction.isAnnotationPresent(AuthAnnotation)){
-    //             return true;
-    //         }
-    //         return false;
-    //     } catch (Exception e) {
-    //         // TODO: handle exception
-    //         throw e;
-    //     }
-    // }
-
     public void init(){
         try { 
+            // prendre le nom du projet
             this.projectName = this.getInitParameter("projectName");
+
+            // declaration des noms de classs d'annotation
             String methodAnnotation = "annotation.Url"; 
             String classAnnotation = "annotation.Scope";
+            // instanciation des class d'annotation
             Class urlAnnotation = Class.forName(methodAnnotation);
             Class scopeAnnotation = Class.forName(classAnnotation);
+
+            // Prendre la list des class du projet
             Project proj = new Project();
             Vector<Class> listClasses = proj.getListClassesInPackage(new Vector<Class>(), new String()); 
+
             for(Class classe : listClasses) {
-                
-                // maka ny class singleton rehetra
+                // maka ny class singleton rehetra atao anaty "list_singleton" an'ny FrontServlet
                 if(classe.isAnnotationPresent(scopeAnnotation)){
                     Scope scope = (Scope) classe.getAnnotation(Scope.class);
                     if(scope.value().compareToIgnoreCase("singleton") == 0){
@@ -95,24 +75,27 @@ public class FrontServlet extends HttpServlet{
                     }
                 }
 
+                // prendre la liste des fonctions de la classe
                 Method[] list_Methods =  classe.getDeclaredMethods();
                 for(Method fonction : list_Methods){
+                    // verifie si la fonction presente l'annotation Url
                     if(fonction.isAnnotationPresent(urlAnnotation)){
                         Url url = (Url) fonction.getAnnotation(Url.class);
-                        System.out.println(url.url());
+                        
+                        // creation d'une instance de Mapping avec le nom de classe et le nom de fonction 
                         Mapping map = new Mapping(classe.getName() , fonction.getName());
+                        // ajout de l'instance de Mapping et de l'Url associé dans l'attribut "mappingUrls"
                         this.mappingUrls.put(url.url() , map);
                     }
                 }
             }
-            // System.out.println(this.mappingUrls.get("/emp-all").getMethod());
-            // System.out.println(this.mappingUrls.get("/emp-add").getMethod());
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
         }
     }
 
+    // ajout du data de ModelView dans des attributs de HttpRequest
     public void setAttributes(HttpServletRequest req , HashMap<String, Object> data) throws Exception {
         if(data != null){
             for(Map.Entry<String , Object> entry : data.entrySet()){
@@ -121,6 +104,7 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    // prendre le nom d'un fichier uploadé
     private String getFileName(Part part){
         String contentDisposition = part.getHeader("content-disposition");
         String[] elements = contentDisposition.split(";");
@@ -132,6 +116,7 @@ public class FrontServlet extends HttpServlet{
         return null;
     }
 
+    // Verifier rah anaty anaty "list_singleton" ny class iray
     private boolean checkSingletonClass( String className ){
         if(this.list_singleton.containsKey(className) == true){
             return true;
@@ -139,7 +124,7 @@ public class FrontServlet extends HttpServlet{
         return false;
     }
 
-    // Fonction qui ajoute la session dans HttpSession
+    // Fonction qui ajoute la session de ModelView dans HttpSession
     public void addSession(ModelView mv, HttpServletRequest req){
         HttpSession session = req.getSession();
         HashMap<String, Object> mv_session = mv.getSession();
@@ -150,6 +135,7 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    // fonction mamafa session anaty HttpSession
     public void removeSession(ModelView mv , HttpServletRequest req){
         HttpSession session = req.getSession();
         Vector<String> removeSession = mv.getRemoveSession();
@@ -158,8 +144,10 @@ public class FrontServlet extends HttpServlet{
         }
     }
     
+    // fonction verifier si l'utilisateur a le droit d'appeler une fonction
     public boolean authentifier(Method fonction , HttpServletRequest req) throws Exception {
         try {
+            // prendre les valeurs de connection dans le fichier "web.xml"
             String isConnectedName = this.getInitParameter("isConnected");
             String profilName = this.getInitParameter("profil");
 
@@ -184,19 +172,24 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    // ajout des attributs de HttpSession dans un objet pour les utiliser dans un "Model/Controller"
     public void setobjectSession(Object objet , Field sessionField , HttpServletRequest req) throws Exception {
         try {
             HttpSession session = req.getSession();
 
+            // instanciation d'un HashMap 
             HashMap<String,Object> listSession = new HashMap();
     
+            // prendre les clés de la session
             Enumeration<String> attributeNames = session.getAttributeNames();
             while (attributeNames.hasMoreElements()) {
                 String attributeName = attributeNames.nextElement();
                 Object attributeValue = session.getAttribute(attributeName);
-                System.out.println("cle: "+attributeName+" valeur: "+attributeValue);
+
+                // Ajout de l'attribut de session dans l'instance HashMap
                 listSession.put(attributeName, attributeValue);
             }
+            // Ajout de l'instance dans l'attribut de session de l'objet 
             sessionField.setAccessible(true);
             sessionField.set(objet , listSession);
         } catch (Exception e) {
@@ -205,6 +198,7 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    // fonction pour afficher un Json
     public void printJson(String json , HttpServletResponse res) throws Exception {
         try {
             res.setContentType("application/json");
@@ -218,6 +212,7 @@ public class FrontServlet extends HttpServlet{
 
     protected void processRequest(HttpServletRequest req , HttpServletResponse res , String url) throws Exception {
         try {
+            // prendre le package de la classe 
             String path = Utils.getPath_in_URL(url, this.projectName);
 
             // instanciation de la classe
@@ -229,54 +224,64 @@ public class FrontServlet extends HttpServlet{
             
             Object objet = new Object();
             
-
             // verification si la classe est un singleton
             if(this.checkSingletonClass(classe.getName()) == true){
-                System.out.println("--------------------------------");
-                System.out.println("--------------------------------");
+                // si la classe singleton a déja été instancé
                 if(this.list_singleton.get(classe.getName()) != null){
+                    // prendre l'instance déja existante
                     objet = this.list_singleton.get(classe.getName());
                 } else {
-                    System.out.println("instanciation singleton");
+                    // instanciation d'un objet singleton
                     objet = classe.newInstance();
                     this.list_singleton.put(classe.getName(), objet);
                 }
             } else {
+                // si la classe n'est pas un singleton 
                 objet = classe.newInstance();
             }
 
-            
-
+            // prendre la liste des attributs de la classe
             Field[] listFields = classe.getDeclaredFields();
             for (Field field : listFields) {
-                if(req.getParameter(field.getName()) != null ){
+                // si les parametres de HttpRequest correspondent aux attributs de la classe
+                if(req.getParameter(field.getName()) != null ){    
+                    // si le parametre de HttpRequest n'est pas un FileUpload
+                    Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
+                    
+                } else {
                     if(field.getType() == FileUpload.class){
-                        if(req.getPart(field.getName()) != null ){
-                            Part partFile = req.getPart(field.getName());
-                            String fileName = getFileName(partFile);
-                            InputStream inputStream = partFile.getInputStream();
-                            byte[] bytes = new byte[(int) partFile.getSize()];
-                            inputStream.read(bytes);
-                            FileUpload fileUpload = new FileUpload(fileName , bytes);
-                            Utils.setAttributeFileUpload(classe, objet, fileUpload, field.getName());
+                        if(ServletFileUpload.isMultipartContent(req)){
+                            // si le parametre FileUpload de HttpRequest correspond à un attribut de la classe
+                            if(req.getPart(field.getName()) != null ){
+                                Part partFile = req.getPart(field.getName());
+
+                                // prendre le nom du fichier FileUpload
+                                String fileName = getFileName(partFile);
+                                InputStream inputStream = partFile.getInputStream();
+                                // prendre la liste de byte du fichier FileUpload
+                                byte[] bytes = new byte[(int) partFile.getSize()];
+                                inputStream.read(bytes);
+                                // instanciation d'un FileUpload
+                                FileUpload fileUpload = new FileUpload(fileName , bytes);
+                                // set des attributs de l'objet
+                                System.out.println("setFileUpload");
+                                Utils.setAttributeFileUpload(classe, objet, fileUpload, field.getName());
+                            }
                         } 
-                    } else {
-                        Utils.setAttribute(classe, objet, req.getParameter(field.getName()), field.getName());
                     }
                 }
             }
 
+            // prendre la liste des fonctions de la classe pour etre utilisé dans "listMethods"
             Method[] listMethods = classe.getDeclaredMethods();
             Vector listParamName = new Vector<String>();
             Method fonction = null;
             Parameter[] parameters = null;
             try {
+                // prendre la fonction à invoker
                 fonction = Utils.getMethod(listMethods, map.getMethod());
-                System.out.println(fonction.getName());
+                
                 parameters = fonction.getParameters();
-                // for (Parameter parameter : parameters) {
-                //     System.out.println(parameter.getName());
-                // }
             } catch (Exception e) {
                 // TODO: handle exception
                 throw e;
@@ -284,7 +289,7 @@ public class FrontServlet extends HttpServlet{
 
             Vector listParamValues = new Vector();
             for (Parameter param : parameters) {
-                // System.out.println("paramName: "+param.getName());
+                // prendre le nom du parametre de la fonction grace à l'annotation "ParameterName"
                 listParamValues.add(req.getParameter(Utils.getParameterName(param)));
             }
 
@@ -297,16 +302,16 @@ public class FrontServlet extends HttpServlet{
 
             // verifier raha annoté session ilay fonction
             if(checkMethodAnnatation(fonction , "annotation.Session") == true){
-                // passage des session dans l'objet
+                // passage des attributs de HttpSession dans l'objet
                 Field attribut = classe.getDeclaredField("session");
                 if(attribut.getType().equals(HashMap.class)){
-                    System.out.println("niditraaaaaaaaaaaaaaaaaaaaaaaaaa");
                     setobjectSession(objet , attribut , req);
                 }
             }
 
             // verification si la fonction est annoté RestAPI
             if(checkMethodAnnatation(fonction , "annotation.RestAPI")){
+                // prendre l'objet retourné par la fonction à invoker
                 Object obj = Utils.getObject(fonction, objet , listParamValues , parameters);
 
                 Gson gson = new Gson();
@@ -314,6 +319,7 @@ public class FrontServlet extends HttpServlet{
                 printJson(json , res);
 
             } else {
+                // prendre le ModelView retourné par la fonction à invoker
                 ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
                 HashMap<String, Object> data = mv.getData();
                 
@@ -337,9 +343,9 @@ public class FrontServlet extends HttpServlet{
                     printJson(json , res);
     
                 } else {
-                    // raha misy data
+                    // raha misy data de ampidirina anaty attribut an'ny HttpRequest
                     this.setAttributes(req, data);
-                    System.out.println(mv.getView());
+                    
                     RequestDispatcher dispat = req.getRequestDispatcher(mv.getView());
                     dispat.forward(req,res);
                 }
@@ -353,32 +359,22 @@ public class FrontServlet extends HttpServlet{
 
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
         System.out.println("processus");
-        // String projectName = "testFramework";
         try {
             this.processRequest(req , res , req.getRequestURL().toString());
-            System.out.println("-----------------------------------------------------------");
-            // System.out.println("page: "+page);
-            
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
         }
         
-        // PrintWriter out = res.getWriter();
-        // out.print(path);
-        System.out.println("do get");
     }
     
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException,IOException{
-        // String projectName = "testFramework";
         try {
             this.processRequest(req , res , req.getRequestURL().toString());
         } catch (Exception e) {
             // TODO: handle exception
             e.printStackTrace();
         }
-        // PrintWriter out = res.getWriter();
-        // out.print(path);
-        System.out.println("do post");
+        
     }
 }
