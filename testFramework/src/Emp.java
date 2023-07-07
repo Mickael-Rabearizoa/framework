@@ -164,6 +164,20 @@ public class Emp{
         // System.out.println("findAll");
     }
 
+    @Url( url = "/logout.do")
+    public ModelView logout(){
+        ModelView mv = new ModelView("logout.jsp");
+        mv.setInvalidateSession(true);
+        return mv;
+    }
+
+    @Url( url = "/deleteSession.do")
+    public ModelView deleteSession(){
+        ModelView mv = new ModelView("logout.jsp");
+        mv.addListRemoveSession("user");
+        return mv;
+    }
+
     // public ModelView login(String nom , String mdp){
     //     ModelView mv.addsession("isConnected" , true);
     //     ModelView mv.addsession("admin" , true);
