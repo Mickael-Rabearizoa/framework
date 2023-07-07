@@ -14,6 +14,7 @@ public class Project{
             if (classLoader == null) {  
                 throw new ClassNotFoundException("Can't get class loader.");
             }
+            // remplacer "." par "/" pour avoir le chemin du package
             String path = packageName.replace('.', '/');
             URL resource = classLoader.getResource(path);
             if (resource == null) {
@@ -25,20 +26,22 @@ public class Project{
             throw new ClassNotFoundException(packageName + " (" + directory + ") does not appear to be a valid package");
         }
         if (directory.exists()) {
-            
+            // prendre la list des fichiers present dans le dossier
             File[] listFile = directory.listFiles();
-            // Vector<String> directoryName = new Vector();
             for(int i=0; i<listFile.length; i++){
                 if(listFile[i].isDirectory()){
-                    // directoryName.add(listFile[i].getName());
+                    // verifie s'il y a encore un package
                     if(packageName.isEmpty()){
+                        // si le fichier actuel n'a pas de package
                         getListClassesInPackage(listClass , listFile[i].getName());
                     } else {
+                        // si le fichier a un package
                         getListClassesInPackage(listClass , packageName + "." + listFile[i].getName());
                     }
+                // si le fichier actuel n'est pas un dossier
                 } else {
                     if (listFile[i].getName().endsWith(".class")) {
-                        System.out.println( "files : "+listFile[i] );
+                        // System.out.println( "files : "+listFile[i] );
                         listClass.add(Class.forName(packageName + '.' + listFile[i].getName().substring(0, listFile[i].getName().length() - 6)));
                     }
                 }

@@ -12,6 +12,7 @@ import annotation.Auth;
 import annotation.Session;
 import annotation.RestAPI;
 
+// @Scope( value = "singleton")
 public class Emp{
     int id;
     String nom;
@@ -37,10 +38,6 @@ public class Emp{
         this.id = id;
     }
 
-    // public void setId(String id){
-    //     this.setId(Integer.parseInt(id));
-    // }
-
     public String getNom() {
         return nom;
     }
@@ -48,10 +45,6 @@ public class Emp{
     public void setNom(String nom) {
         this.nom = nom;
     }
-
-    // public void setNom(Object nom) {
-    //     this.setNom(String.valueOf(nom));
-    // }
 
     public double getSalaire() {
         return salaire;
@@ -77,10 +70,7 @@ public class Emp{
         this.session = session;
     }
 
-    // public void setSalaire(String salaire){
-    //     this.setSalaire(Double.parseDouble(salaire));
-    // }
-
+    // pour tester data de ModelView
     @Url( url = "/emp-all.do")
     public ModelView find_all(){
         Vector<Emp> listEmp = new Vector();
@@ -92,14 +82,15 @@ public class Emp{
         ModelView mv = new ModelView("page.jsp");
         mv.addItem("listEmp" , listEmp);
         return mv;
-        // System.out.println("findAll");
     }
 
+    // pour tester Url
     @Url( url = "/emp-add.do")
     public void add(){
         System.out.println("add");
     }
 
+    // pour tester le passage des données de la vue vers les model
     @Url( url = "/emp-save.do")
     public ModelView save(){
         System.out.println("object: " + this);
@@ -109,9 +100,12 @@ public class Emp{
         System.out.println(this.getPhoto().getName());
         System.out.println(this.getPhoto().getBytes()[0]);
         System.out.println(this.getPhoto().getBytes()[1]);
-        return null;
+        ModelView mv = new ModelView("save.jsp");
+        mv.addItem("employe" , this);
+        return mv;
     }
 
+    // pour tester l'appel d'un fonction avec parametre
     @Url( url = "/detail-emp.do")
     public ModelView detailEmp(@ParameterName( parameterName = "id" ) int id){
         Emp employe = this.findById(id);
@@ -133,6 +127,7 @@ public class Emp{
         return mv;
     }
 
+    // verifier l'authentification
     @Url( url = "/authentifier.do")
     @Auth(profil = "admin")
     public ModelView checkAuthentification(){
@@ -140,6 +135,7 @@ public class Emp{
         return mv;
     }
 
+    // test d'utilisation des attributs de session
     @Session()
     @Url( url = "/test-session.do")
     public ModelView testSession(){
@@ -150,6 +146,7 @@ public class Emp{
         return mv;
     }   
 
+    // test json
     @RestAPI()
     @Url( url = "/emp-all-json.do")
     public Vector<Emp> find_all_json(){
@@ -161,9 +158,9 @@ public class Emp{
         listEmp.add(new Emp(3 , "Rasoa" ,  2000));
         
         return listEmp;
-        // System.out.println("findAll");
     }
 
+    // supprimer tous les session
     @Url( url = "/logout.do")
     public ModelView logout(){
         ModelView mv = new ModelView("logout.jsp");
@@ -171,6 +168,7 @@ public class Emp{
         return mv;
     }
 
+    // supprimer un attribut de session
     @Url( url = "/deleteSession.do")
     public ModelView deleteSession(){
         ModelView mv = new ModelView("logout.jsp");
@@ -178,8 +176,13 @@ public class Emp{
         return mv;
     }
 
-    // public ModelView login(String nom , String mdp){
-    //     ModelView mv.addsession("isConnected" , true);
-    //     ModelView mv.addsession("admin" , true);
-    // }
+    // test singleton
+    @Url( url = "/singleton.do")
+    public ModelView singleton(){
+        ModelView mv = new ModelView("singleton.jsp");
+        System.out.println("object: " + this);
+        mv.addItem("singleton" , this);
+        return mv;
+    }
+
 }
