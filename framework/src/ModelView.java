@@ -1,11 +1,14 @@
 package modelView;
 import java.util.HashMap;
+import java.util.Vector;
 
 public class ModelView {
     private String view;
     private HashMap<String, Object> data;
     private HashMap<String, Object> session;
     private boolean isJson;
+    private boolean invalidateSession;
+    private Vector<String> removeSession = new Vector<>();
 
     public ModelView(String view){
         setView(view);
@@ -57,7 +60,27 @@ public class ModelView {
         this.isJson = isJson;
     }
 
+    public boolean getInvalidateSession(){
+        return this.invalidateSession;
+    }
+
+    public void setInvalidateSession(boolean value){
+        this.invalidateSession = value;
+    }
+
     public void addSession(String key, Object value){
         this.session.put(key, value);
+    }
+
+    public Vector<String> getRemoveSession() {
+        return removeSession;
+    }
+
+    public void setRemoveSession(Vector<String> removeSession) {
+        this.removeSession = removeSession;
+    }
+
+    public void addListRemoveSession(String key){
+        this.removeSession.add(key);
     }
 }

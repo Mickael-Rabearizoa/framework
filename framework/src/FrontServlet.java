@@ -139,7 +139,6 @@ public class FrontServlet extends HttpServlet{
         return false;
     }
 
-    ///////////////////////////////////////////////////////////// 
     // Fonction qui ajoute la session dans HttpSession
     public void addSession(ModelView mv, HttpServletRequest req){
         HttpSession session = req.getSession();
@@ -151,6 +150,13 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
+    public void removeSession(ModelView mv , HttpServletRequest req){
+        HttpSession session = req.getSession();
+        Vector<String> removeSession = mv.getRemoveSession();
+        for (String key : removeSession) {
+            session.removeAttribute(key);
+        }
+    }
     
     public boolean authentifier(Method fonction , HttpServletRequest req) throws Exception {
         try {
@@ -311,7 +317,16 @@ public class FrontServlet extends HttpServlet{
                 ModelView mv = Utils.getModelView(fonction, objet , listParamValues , parameters);
                 HashMap<String, Object> data = mv.getData();
                 
-                // raha misy session
+                // raha tokony fafana daoly ny session rehetra
+                if(mv.getInvalidateSession() == true){
+                    HttpSession session = req.getSession();
+                    session.invalidate();
+                }
+
+                // rah misy session fafana anaty HttpSession
+                this.removeSession(mv, req);
+
+                // raha misy session ampidirina anaty HttpSession
                 this.addSession(mv, req);
     
                 // verifier s'il faut transformer data en Json
